@@ -6,84 +6,69 @@ import java.io.StringWriter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import org.apache.pdfbox.pdmodel.PDDocument;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Predicate;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.text.TextPosition;
 import com.google.common.base.Splitter;
-import com.google.common.io.CharSource;
 
 public class Reader {
-  public final static List<LocalDateTime> extrahiereHinfahrten(File file) throws IOException {
-    try (var document = PDDocument.load(file)) {
+  public final static List<LocalDateTime> extrahiereHinfahrten(File file, Year jahr)
+      throws IOException {
+    try (var document = Loader.loadPDF(file)) {
       try (var output = new StringWriter();) {
-        var stripper = new PDFTextStripper();
+        var spalten = new TreeMap<Integer, List<String>>();
+        var stripper = new PDFTextStripper() {
+          @Override
+          protected void writeString(String text, List<TextPosition> textPositions)
+              throws IOException {
+            int pos = (int) textPositions.get(0).getX() / 85;
+            spalten.putIfAbsent(pos, new ArrayList<>());
+            spalten.get(pos).add(text);
+            super.writeString(text, textPositions);
+          }
+        };
+        stripper.setEndPage(1);
         stripper.setSortByPosition(true);
+        stripper.setWordSeparator("DUMMY");
         stripper.writeText(document, output);
-        return extrahiereHinfahrten(
-            new ArrayList<>(CharSource.wrap(output.getBuffer()).readLines()));
+        return extrahiereHinfahrten(jahr, spalten);
       }
     }
   }
 
-  private static List<LocalDateTime> extrahiereHinfahrten(List<String> lines) {
-    // pdftotext --layout
-    lines.remove(0);
-    lines.remove(0);
-    lines.remove(0);
-    var splitter = Splitter.on(' ').omitEmptyStrings().trimResults();
-    var columns =
-        lines.stream().map(l -> splitter.splitToStream(l).collect(Collectors.toList())).toList();
-    int i = 0;
+  private static List<LocalDateTime> extrahiereHinfahrten(Year jahr,
+      Map<Integer, List<String>> spalten) {
     var fahrten = new ArrayList<LocalDateTime>();
-    for (LocalDate current = LocalDate.of(2023, 1, 1); current
-        .isBefore(LocalDate.of(2024, 1, 1)); current = current.plusDays(1)) {
-      if (current.getDayOfMonth() == 1)
-        i = 0;
-      var line = columns.get(i);
+    var splitter = Splitter.on(' ').omitEmptyStrings().trimResults();
+    for (int monat = 1; monat < 13; monat++) {
+      var zeilen = spalten.get(monat - 1).stream().flatMap(l -> splitter.splitToStream(l))
+          .map(String::strip).filter(Predicate.not(String::isEmpty)).iterator();
+      var zeile = zeilen.next();
+      while (!zeile.equals("1."))
+        zeile = zeilen.next();
 
-      var wochentag = line.get(0);
-      var hin = line.get(2).replace('.', ':');
-      LocalDateTime fahrt;
-      if (hin.charAt(0) != '-') {
-        var time = LocalTime.parse(hin);
-        fahrt = current.atTime(time);
+      var tag = Integer.valueOf(zeile.replace(".", ""));
+
+      while (zeilen.hasNext()) {
+        zeile = zeilen.next();
+        if (zeile.charAt(0) < '0' | zeile.charAt(0) > '9')
+          continue;
+        if (zeile.endsWith(".")) {
+          tag = Integer.valueOf(zeile.replace(".", ""));
+          continue;
+        }
+        var hin = zeile.replace('.', ':');
+        var zurueck = zeilen.next();
+        var fahrt =
+            LocalDateTime.of(LocalDate.of(jahr.getValue(), monat, tag), LocalTime.parse(hin));
         fahrten.add(fahrt);
-
-        for (int j = 0; j < 4; j++)
-          line.remove(0);
-      } else
-        // Erste Fahrt fällt aus
-        fahrt = LocalDateTime.MIN;
-
-      // Zweite Zeile?
-      i++;
-      line = columns.get(i);
-      if (line.isEmpty())
-        // Gar keine Zeile
-        continue;
-      wochentag = line.get(0);
-      if (wochentag.length() == 2)
-        // Schon der nächste Tag
-        continue;
-      var zweite = line.get(0).replace('.', ':');
-      if (zweite.charAt(0) == '-') {
-        // Keine Hinfahrt, nur Rückfahrt
-        for (int j = 0; j < 2; j++)
-          line.remove(0);
-        i++;
-        continue;
       }
-      var fahrt2 = current.atTime(LocalTime.parse(zweite));
-      if (fahrt.isAfter(fahrt2))
-        // Spezialfall, wenn Information aus Folgemonat kommt;
-        // meist fälschlicherweise am Monatsende
-        continue;
-      fahrten.add(fahrt2);
-      for (int j = 0; j < 2; j++)
-        line.remove(0);
-      i++;
     }
     return fahrten;
   }

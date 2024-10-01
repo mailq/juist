@@ -6,22 +6,22 @@ Die generierte Datei (ics) im iCalendar-Format kann im Anschluss in viele Kalend
 
 ## Benutzung
 
-Voraussetzung ist eine aktuelle, installierte Java Version (https://foojay.io/almanac/java-17/).
+Voraussetzung ist eine aktuelle, installierte Java Version (https://foojay.io/almanac/java-21/).
 
 Und eine heruntergeladene PDF-Version des Frisia Fahrplans von https://inselfaehre.de/juist, ganz unten auf der Seite unter Service "Download Fahplan Juist 202x"
 
 ### Windows
-    .\gradlew.bat run --args="'C:\Eigene Dateien\Benutzer\fahrplan.pdf' 'C:\Eigene Dateien\Benutzer\neuerKalender.ics'"
+    .\gradlew.bat run --args="'C:\Eigene Dateien\Benutzer\fahrplan.pdf' 'C:\Eigene Dateien\Benutzer\neuerKalender.ics' 2025"
 
 *Natürlich ist der Pfad zur Datei anzupassen.*
 
 ### Linux
-    ./gradlew run --args="/home/benutzer/Dokumente/fahrplan.pdf /home/benutzer/Dokumente/neuerKalender.ics"
+    ./gradlew run --args="/home/benutzer/Dokumente/fahrplan.pdf /home/benutzer/Dokumente/neuerKalender.ics 2025"
 
 *Natürlich ist der Pfad zur Datei anzupassen.*
 
 ## Gewähr
-Das Projekt wurde *mal eben* programmiert, daher ist die Code-Qualität bescheiden und die Test nicht vorhanden. Es funktioniert mit dem Fahrplan 2023. Ob es die nächsten Jahre auch noch funktioniert, hängt davon ab, ob das PDF im gleichen Format zur Verfügung gestellt wird.
+Das Projekt wurde *mal eben* programmiert, daher ist die Code-Qualität bescheiden und die Test nicht vorhanden. Es funktioniert mit dem Fahrplan 2023, 2024 und 2025. Ob es die nächsten Jahre auch noch funktioniert, hängt davon ab, ob das PDF im gleichen Format zur Verfügung gestellt wird.
 
 Es ist bewusst nur die Hinfahrt gewählt, weil man ja erst einmal auf die Insel muss. Wenn man da ist, lässt sich die Rückfahrt ja viel einfacher planen.
 

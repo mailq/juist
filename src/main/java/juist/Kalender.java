@@ -2,25 +2,17 @@ package juist;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
+
 import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.Component;
-import net.fortuna.ical4j.model.DateTime;
-import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.TimeZone;
-import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
-import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.DtStamp;
 import net.fortuna.ical4j.model.property.Geo;
 import net.fortuna.ical4j.model.property.Location;
-import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.TzName;
-import net.fortuna.ical4j.model.property.Version;
 import net.fortuna.ical4j.model.property.immutable.ImmutableVersion;
 import net.fortuna.ical4j.util.RandomUidGenerator;
 import net.fortuna.ical4j.util.UidGenerator;
@@ -28,7 +20,7 @@ import net.fortuna.ical4j.util.UidGenerator;
 public class Kalender {
   public static Calendar alsKalender(List<LocalDateTime> fahrten) {
     var timezone = new TzName("Europe/Berlin");
-    var calendar = new Calendar().withProdId("-//Ben Fortuna//iCal4j 4.0.4//DE")
+    var calendar = new Calendar().withProdId("-//mailq//iCal4j 4.2.0//DE")
         .withProperty(ImmutableVersion.VERSION_2_0)
         .withProperty(new CalScale(CalScale.VALUE_GREGORIAN))
         .getFluentTarget();

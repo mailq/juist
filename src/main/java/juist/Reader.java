@@ -33,7 +33,8 @@ public class Reader {
             super.writeString(text, textPositions);
           }
         };
-        stripper.setEndPage(1);
+        stripper.setStartPage(2);
+        stripper.setEndPage(2);
         stripper.setSortByPosition(true);
         stripper.setWordSeparator("DUMMY");
         stripper.writeText(document, output);
@@ -65,8 +66,9 @@ public class Reader {
         }
         var hin = zeile.replace('.', ':');
         var zurueck = zeilen.next();
-        var fahrt =
-            LocalDateTime.of(LocalDate.of(jahr.getValue(), monat, tag), LocalTime.parse(hin));
+        if ("|".equals(zurueck))
+          break;
+        var fahrt = LocalDateTime.of(LocalDate.of(jahr.getValue(), monat, tag), LocalTime.parse(hin));
         fahrten.add(fahrt);
       }
     }
